@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>QR Speed Demo</title>
+    <title>QR Demo</title>
 
     <style>
       * {
@@ -16,31 +16,53 @@
         margin: 0;
         min-height: 100vh;
         display: flex;
-        justify-content: center;
         align-items: center;
-        background: #111;
-        color: white;
-        font-family: Arial, sans-serif;
+        justify-content: center;
+        padding: 24px;
+
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Arial,
+          sans-serif;
+
+        background: radial-gradient(
+          circle at top,
+          #202020 0%,
+          #111111 45%,
+          #080808 100%
+        );
+
+        color: #ffffff;
       }
 
       .container {
-        width: 90%;
-        max-width: 900px;
+        width: 100%;
+        max-width: 850px;
         text-align: center;
       }
 
+      /* Loading */
+
       #loading {
-        font-size: 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
       }
 
       .spinner {
-        width: 55px;
-        height: 55px;
-        margin: 0 auto 25px;
-        border: 5px solid #444;
-        border-top: 5px solid white;
+        width: 58px;
+        height: 58px;
+
+        border: 4px solid rgba(255, 255, 255, 0.12);
+        border-top-color: #ffffff;
+
         border-radius: 50%;
-        animation: spin 1s linear infinite;
+
+        animation: spin 0.9s linear infinite;
       }
 
       @keyframes spin {
@@ -49,59 +71,131 @@
         }
       }
 
-      #loadingText {
-        font-size: 24px;
+      .loading-title {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.3px;
       }
 
-      #image {
-        display: none;
-        max-width: 100%;
-        max-height: 70vh;
-        border-radius: 12px;
+      .loading-subtitle {
+        margin-top: -14px;
+
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.5);
       }
+
+      /* Result */
 
       #result {
         display: none;
-        margin-top: 20px;
+      }
+
+      .image-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }
+
+      #image {
+        display: block;
+
+        max-width: 100%;
+        max-height: 65vh;
+
+        object-fit: contain;
+
+        border-radius: 18px;
+
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.45);
+      }
+
+      .result-info {
+        margin-top: 28px;
+      }
+
+      .result-title {
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.55);
+        margin-bottom: 8px;
       }
 
       .time {
-        font-size: 28px;
-        font-weight: bold;
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: -1px;
       }
 
-      .label {
-        margin-top: 8px;
-        font-size: 15px;
-        color: #aaa;
+      .unit {
+        font-size: 18px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.55);
+        margin-left: 4px;
+      }
+
+      /* Small screens */
+
+      @media (max-width: 600px) {
+        body {
+          padding: 18px;
+        }
+
+        .loading-title {
+          font-size: 20px;
+        }
+
+        #image {
+          max-height: 60vh;
+          border-radius: 14px;
+        }
+
+        .time {
+          font-size: 30px;
+        }
       }
     </style>
   </head>
 
   <body>
-    <div class="container">
-      <div id="loading">
+    <main class="container">
+      <!-- Loading Screen -->
+
+      <section id="loading">
         <div class="spinner"></div>
-        <div id="loadingText">Loading...</div>
-      </div>
 
-      <img id="image" alt="Result" />
+        <div class="loading-title">Loading...</div>
 
-      <div id="result">
-        <div class="time"><span id="time">0</span> ms</div>
+        <div class="loading-subtitle">
+          Please wait while we prepare your content
+        </div>
+      </section>
 
-        <div class="label">Time consumed</div>
-      </div>
-    </div>
+      <!-- Result -->
+
+      <section id="result">
+        <div class="image-wrapper">
+          <img id="image" alt="Result" />
+        </div>
+
+        <div class="result-info">
+          <div class="result-title">Response Time</div>
+
+          <div class="time">
+            <span id="time">0</span>
+            <span class="unit">ms</span>
+          </div>
+        </div>
+      </section>
+    </main>
 
     <script>
       const loading = document.getElementById("loading");
-      const loadingText = document.getElementById("loadingText");
-      const image = document.getElementById("image");
       const result = document.getElementById("result");
+
+      const image = document.getElementById("image");
       const timeElement = document.getElementById("time");
 
       const params = new URLSearchParams(window.location.search);
+
       const mode = params.get("mode");
 
       const startTime = performance.now();
@@ -111,47 +205,39 @@
 
         image.onload = () => {
           const endTime = performance.now();
+
           const elapsedTime = Math.round(endTime - startTime);
 
           loading.style.display = "none";
-          image.style.display = "block";
+
+          result.style.display = "block";
 
           timeElement.textContent = elapsedTime;
-          result.style.display = "block";
         };
       }
 
       /*
-       * FAST QR
-       * Shows the fast image immediately.
+       * FAST MODE
        */
+
       if (mode === "fast") {
-        showImage("fast.jpeg");
+        showImage("fast.jpg");
       } else if (mode === "slow") {
-        /*
-         * SLOW QR
-         * Waits approximately 15 seconds
-         * then shows the slow image.
-         */
-        let remaining = 15;
 
-        loadingText.textContent = `Please wait ${remaining} seconds...`;
+      /*
+       * SLOW MODE
+       */
+        // Just show the loading screen.
+        // No countdown is displayed.
 
-        const countdown = setInterval(() => {
-          remaining--;
-
-          if (remaining > 0) {
-            loadingText.textContent = `Please wait ${remaining} seconds...`;
-          } else {
-            clearInterval(countdown);
-
-            showImage("slow.webp");
-          }
-        }, 1000);
+        setTimeout(() => {
+          showImage("slow.jpg");
+        }, 15000);
       } else {
-        /*
-         * Default
-         */
+
+      /*
+       * DEFAULT
+       */
         showImage("fast.jpg");
       }
     </script>
